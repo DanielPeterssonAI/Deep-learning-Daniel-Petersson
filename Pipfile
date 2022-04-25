@@ -12,6 +12,7 @@ sklearn = "*"
 tensorflow-macos = "*"
 tensorflow-metal = "*"
 h5py = "*"
+opencv-python = "*"
 
 [dev-packages]
 
