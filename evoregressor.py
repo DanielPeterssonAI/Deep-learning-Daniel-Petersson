@@ -58,7 +58,7 @@ class EvoRegressor:
             
             self.sorted_indecies = np.argsort(self.nets_loss)
             
-            self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / (epochs / (10 * math.log10(epochs))))
+            self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / (epochs / (10 * math.log10(epochs + 1))))
             
             for i in range(0, self.n // 2, 2):
                 for j in range(len(self.layers) - 1):
