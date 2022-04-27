@@ -244,7 +244,7 @@ class VectorizedEvoRegressor:
 
             self.sorted_indecies = np.argsort(self.nets_loss)
 
-            self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / ((epochs + 1) / (10 * math.log10(epochs + 1))))
+            self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / ((epochs + 1) / (100 * math.log10(epochs + 1))))
 
             for j in range(0, len(self.layers) - 1):
                 self.weights[j][self.sorted_indecies[50::2]] = np.mean((self.weights[j][self.sorted_indecies[:50:2]], self.weights[j][self.sorted_indecies[1:51:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
