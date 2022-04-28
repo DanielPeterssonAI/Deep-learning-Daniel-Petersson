@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 class EvoRegressor:
-    def __init__(self, n = 100, hidden_layers = False, activation = "sigmoid", random_state = None):
+    def __init__(self, n = 20, hidden_layers = False, activation = "sigmoid", random_state = None):
 
         self.n = n // 2 * 2
         self.nets = []
@@ -94,7 +94,7 @@ class EvoRegressor:
 
 
 class EvoClassifier:
-    def __init__(self, n = 100, hidden_layers = False, activation = "sigmoid", random_state = None):
+    def __init__(self, n = 20, hidden_layers = False, activation = "sigmoid", random_state = None):
 
         self.n = n // 2 * 2
         self.nets = []
@@ -189,7 +189,7 @@ class EvoClassifier:
 
 
 class VectorizedEvoRegressor:
-    def __init__(self, n = 100, hidden_layers = False, activation = "sigmoid", random_state = None):
+    def __init__(self, n = 20, hidden_layers = False, activation = "sigmoid", random_state = None):
 
         self.n = n // 2 * 2
         self.best_net = -1
@@ -276,7 +276,7 @@ class VectorizedEvoRegressor:
 
 
 class VectorizedEvoClassifier:
-    def __init__(self, n = 100, hidden_layers = False, activation = "sigmoid", random_state = None):
+    def __init__(self, n = 20, hidden_layers = False, activation = "sigmoid", random_state = None):
 
         self.n = n // 2 * 2
         self.best_net = -1
