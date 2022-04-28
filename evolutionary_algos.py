@@ -247,8 +247,8 @@ class VectorizedEvoRegressor:
             self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / ((epochs + 1) / (100 * math.log10(epochs + 1))))
 
             for j in range(0, len(self.layers) - 1):
-                self.weights[j][self.sorted_indecies[50::2]] = np.mean((self.weights[j][self.sorted_indecies[:50:2]], self.weights[j][self.sorted_indecies[1:51:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
-                self.weights[j][self.sorted_indecies[51::2]] = np.mean((self.weights[j][self.sorted_indecies[:50:2]], self.weights[j][self.sorted_indecies[1:51:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
+                self.weights[j][self.sorted_indecies[self.n // 2::2]] = np.mean((self.weights[j][self.sorted_indecies[:self.n // 2:2]], self.weights[j][self.sorted_indecies[1:1 + self.n // 2:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
+                self.weights[j][self.sorted_indecies[1 + self.n // 2::2]] = np.mean((self.weights[j][self.sorted_indecies[:self.n // 2:2]], self.weights[j][self.sorted_indecies[1:1 + self.n // 2:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
 
             if self.best_net != self.sorted_indecies[0]:
                 self.best_net = self.sorted_indecies[0]
@@ -273,3 +273,95 @@ class VectorizedEvoRegressor:
 
         forward_pass = self.weights[-1][self.best_net].T @ forward_pass
         return forward_pass.reshape(-1)
+
+
+class VectorizedEvoClassifier:
+    def __init__(self, n = 100, hidden_layers = False, activation = "sigmoid", random_state = None):
+
+        self.n = n // 2 * 2
+        self.best_net = -1
+        self.best_result = None
+        self.validation_loss_history = []
+        self.training_loss_history = []
+        self.mutation_sigma = 0
+
+        if activation == "sigmoid":
+            self.activation_function = lambda x: 1 / (1 + np.exp(-x))
+        elif activation == "relu":
+            self.activation_function = lambda x: np.maximum(0, x)
+        elif activation == "leaky_relu":
+            self.activation_function = lambda x: np.maximum(0.1 * x, x)
+        
+        self.output_activation_function = lambda x: 1 / (1 + np.exp(-x))
+        
+        if hidden_layers:
+            self.layers = hidden_layers + [1]
+        else:
+            self.layers = [1]
+        
+        if random_state != None:
+            np.random.seed(random_state)
+
+    
+    def fit(self, X_train, y_train, epochs = 100, validation_data = False, verbose = 0):
+        X_train = np.c_[np.ones(X_train.shape[0]), X_train]
+
+        if validation_data:
+            X_val, y_val = validation_data
+
+        self.layers = [X_train.shape[1]] + self.layers
+
+        self.y_preds = np.zeros((self.n, y_train.shape[0]))
+        self.nets_loss = np.zeros(self.n)
+        self.sorted_indecies = np.zeros(self.n)
+
+        self.weights = []
+
+        for i in range(len(self.layers) - 1):
+            self.weights += [np.random.uniform(-1, 1, (self.n, self.layers[i], self.layers[i + 1]))]
+
+        for epoch in range(epochs):
+            forward_pass = X_train.T
+            
+            for j in range(0, len(self.layers) - 2):
+                forward_pass = self.activation_function(self.weights[j].transpose(0, 2, 1) @ forward_pass)
+
+            forward_pass = self.output_activation_function(self.weights[-1].transpose(0, 2, 1) @ forward_pass)
+            
+            self.y_preds = forward_pass.reshape(self.n, -1)
+
+            self.nets_loss = np.mean(np.abs(self.y_preds - y_train), axis = 1)
+            
+            
+            self.sorted_indecies = np.argsort(self.nets_loss)
+
+            self.mutation_sigma = 0.1 + 5 * 1 / math.exp(epoch / ((epochs + 1) / (100 * math.log10(epochs + 1))))
+
+            for j in range(0, len(self.layers) - 1):
+                self.weights[j][self.sorted_indecies[self.n // 2::2]] = np.mean((self.weights[j][self.sorted_indecies[:self.n // 2:2]], self.weights[j][self.sorted_indecies[1:1 + self.n // 2:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
+                self.weights[j][self.sorted_indecies[1 + self.n // 2::2]] = np.mean((self.weights[j][self.sorted_indecies[:self.n // 2:2]], self.weights[j][self.sorted_indecies[1:1 + self.n // 2:2]]), axis = 0) + np.random.normal(0, self.mutation_sigma, (self.n // 4, self.layers[j], self.layers[j + 1]))
+
+            if self.best_net != self.sorted_indecies[0]:
+                self.best_net = self.sorted_indecies[0]
+                self.training_loss_history += [self.nets_loss[self.best_net]]
+                
+                if validation_data:
+                    self.validation_loss_history += [np.mean(np.abs(y_val - self.predict(X_val)))]
+                    if verbose == 1:
+                        print(f"Epoch {epoch} - loss: {self.training_loss_history[-1]} - val_loss: {self.validation_loss_history[-1]}")
+                else:
+                    if verbose == 1:
+                        pass
+                        print(f"Epoch {epoch} - loss: {self.training_loss_history[-1]}")
+
+
+    def predict(self, X):
+        X = np.c_[np.ones(X.shape[0]), X]
+
+        forward_pass = X.T
+        for j in range(0, len(self.layers) - 2):
+            forward_pass = self.activation_function(self.weights[j][self.best_net].T @ forward_pass)
+
+        forward_pass = self.output_activation_function(self.weights[-1][self.best_net].T @ forward_pass)
+        return forward_pass.reshape(-1)
+
