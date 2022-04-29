@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 lab/original_data/test/test/*
 lab/original_data/train/train/*
+lab/experiment_tiny_data/*
+lab/experiment_small_data/*
 .DS_Store
