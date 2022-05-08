@@ -14,6 +14,7 @@ tensorflow-metal = "*"
 h5py = "*"
 opencv-python = "*"
 line-profiler = "*"
+tensorflow-datasets = "*"
 
 [dev-packages]
 
