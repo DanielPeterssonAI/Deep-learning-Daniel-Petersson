@@ -5,14 +5,16 @@ class EvoMLPRegressor:
 
     '''THIS IS THE ONE TO USE'''
 
-    def __init__(self, n = 24, hidden_layers = False, activation = "relu", lr_decay = 20, random_state = None):
+    def __init__(self, n = 24, hidden_layers = False, activation = "relu",  lr_target = 0.04, lr_initial_decay = 60, lr_final_decay = 0.03, random_state = None):
 
         self.n = int(round(n / 8) * 8)
         self.validation_loss_history = []
         self.training_loss_history = []
         self.random_state = random_state
         self.activation = activation
-        self.lr_decay = lr_decay
+        self.lr_target = lr_target
+        self.lr_initial_decay = lr_initial_decay
+        self.lr_final_decay = lr_final_decay
         
         if hidden_layers:
             self.layers = hidden_layers + [1]
@@ -39,7 +41,9 @@ class EvoMLPRegressor:
         n = self.n
         ndiv4 = n // 4
 
-        lr_decay = self.lr_decay
+        lr_target = self.lr_target
+        lr_initial_decay = self.lr_initial_decay
+        lr_final_decay = self.lr_final_decay
 
         layers = [X_train.shape[1]] + self.layers
 
@@ -71,7 +75,8 @@ class EvoMLPRegressor:
 
             sorted_indices = np.argsort(nets_loss)
 
-            mutation_sigma = math.exp(-epoch / (epochs / (lr_decay * math.log10(epochs + 1)))) + 0.02 * math.exp(-(epoch + 1) * (1 / (epochs + 1))) - 0.005
+            mutation_sigma = math.exp(-epoch / (epochs / (lr_initial_decay * math.log10(epochs + 1)))) + lr_final_decay * math.exp(-(epoch + 1) * (1 / (epochs))) + lr_target + (-0.036 * 10 * lr_final_decay)
+            #mutation_sigma = math.exp(-epoch / (epochs / (lr_decay * math.log10(epochs + 1)))) + 0.02 * math.exp(-(epoch + 1) * (1 / (epochs + 1))) - 0.005
 
             for j in range(number_of_layers_minus_one):
                 weights[j][sorted_indices[0 + ndiv4::6]] = (weights[j][sorted_indices[0: ndiv4: 2]] + weights[j][sorted_indices[1: ndiv4: 2]]) / 2 + np.random.normal(0, mutation_sigma, (ndiv4 // 2, layers[j], layers[j + 1]))
