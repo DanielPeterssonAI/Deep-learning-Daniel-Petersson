@@ -132,3 +132,4 @@ lab/original_data/train/train/*
 lab/experiment_tiny_data/*
 lab/experiment_small_data/*
 .DS_Store
+lab/1.jpg
