@@ -17,6 +17,11 @@ line-profiler = "*"
 tensorflow-datasets = "*"
 nltk = "*"
 pyjokes = "*"
+spacy = "*"
+cowsay = "*"
+affinda = "*"
+pypdf2 = "*"
+wordcloud = "*"
 
 [dev-packages]
 notebook = "*"
